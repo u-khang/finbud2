@@ -15,13 +15,21 @@ router.get("/", async (req, res) => {
 // POST /api/transactions
 router.post("/", async (req, res) => {
   try {
-    const newTx = new Transaction(req.body);
-    const saved = await newTx.save();
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Not logged in" });
+    }
+
+    const transaction = new Transaction({
+      ...req.body,
+      user: req.session.userId  
+    });
+
+    const saved = await transaction.save();
     res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-  console.log("POST /api/transactions");
 });
+
 
 module.exports = router;

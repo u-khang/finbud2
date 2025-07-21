@@ -34,7 +34,7 @@ app.use(express.json());
 
 
 const transactionRoutes = require("./routes/transactions");
-app.use("/api/transactions", transactionRoutes);
+app.use("/api/transactions", transactionRoutes);  
 
 const userRoutes = require("./routes/users");
 app.use("/api/users", userRoutes);

@@ -46,6 +46,7 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ username });
     if (!user || user.password !== password) {
+      console.log("Login attempt:", req.body);
       return res.status(401).json({ error: "Invalid credentials" });
     }
     req.session.userId = user._id;  // set session

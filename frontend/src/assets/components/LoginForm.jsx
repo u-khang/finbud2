@@ -21,7 +21,8 @@ function LoginForm({ onLogin }) {
       });
 
       const data = await res.json();
-      res.ok ? onLogin(data.username) : setError(data.error || "Login failed");
+      console.log("data received: ", data);
+      res.ok ? onLogin(data.user.username) : setError(data.error || "Login failed");
     } catch (err) {
       setError("Server error");
     }

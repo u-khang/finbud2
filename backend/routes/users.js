@@ -42,9 +42,9 @@ router.post("/signup", async (req, res) => {
 
 // POST /api/users/login
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user || user.password !== password) {
       console.log("Login attempt:", req.body);
       return res.status(401).json({ error: "Invalid credentials" });

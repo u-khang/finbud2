@@ -29,7 +29,10 @@ app.use(
   })
 );
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // frontend URL
+  credentials: true                // allow cookies/sessions
+}));
 app.use(express.json());
 
 

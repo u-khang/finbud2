@@ -5,11 +5,29 @@ import viteLogo from '/vite.svg'
 import SignupForm from './assets/components/signUpForm'
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  const handleSignup = (newUser) => {
+    console.log("Signed up successfully:", newUser);
+    setUser(newUser);
+
+    // redirect (React Router):
+    // navigate("/dashboard");
+
+    // welcome UI:
+    // alert(`Welcome, ${newUser.username}!`);
+  };
   return (
-    <div>
-      <h1>welcome to finbud2</h1>
-      <SignupForm />
-    </div>
+    <>
+      {!user ? (
+        <SignupForm onSignup={handleSignup} />
+      ) : (
+        <div style={{ textAlign: "center", marginTop: "3rem" }}>
+          <h2>Welcome, {user.username} 🎉</h2>
+          <p>You're signed in and ready to roll!</p>
+        </div>
+      )}
+    </>
   );
 }
 

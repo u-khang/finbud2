@@ -3,6 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import NewTransaction from "./pages/NewTransaction";
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -16,6 +19,7 @@ function App() {
         path="/dashboard"
         element={user ? <Dashboard user={user} /> : <Navigate to="/login" />}
       />
+      <Route path="/new" element={<NewTransaction />} />
     </Routes>
   );
 }

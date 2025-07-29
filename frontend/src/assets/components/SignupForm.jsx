@@ -25,10 +25,8 @@ function SignupForm({ onSignup }) {
       });
 
       const data = await res.json();
-      console.log("Raw response:", res);
-      console.log("Parsed data:", data);
       if (res.ok) {
-        onSignup(data.username);  // Notify parent component
+        onSignup(data.user.username);  // Notify parent component
       } else {
         setError(data.error || "Signup failed");
       }

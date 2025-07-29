@@ -32,7 +32,7 @@ router.post("/signup", async (req, res) => {
     const user = new User({ username, email, password });
     const saved = await user.save();
     req.session.userId = user._id;  // set session
-    res.status(201).json({ message: "Sign up successfully", saved });
+    res.status(201).json({ message: "Sign up successfully", user: saved });
     console.log(saved); // res data
     console.log(req.body); // req data
   } catch (err) {

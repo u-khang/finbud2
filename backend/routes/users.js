@@ -4,7 +4,7 @@ const router = express.Router();
 const User = require("../models/User");
 
 
-// GET /api/users
+// GET /api/users - get all user profiles (admin)
 router.get("/", async (req, res) => {
   try {
     const all = await User.find().sort({ date: -1 });
@@ -15,21 +15,21 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /api/users
-router.post("/", async (req, res) => {
-  try {
-    const newTx = new User(req.body);
-    const saved = await newTx.save();
-    req.session.userId = newTx._id;  // set session
-    res.status(201).json(saved);
-  } catch (err) {
-    console.error("Create user error:", err);
-    res.status(400).json({ error: err.message });
-  }
-});
+// POST /api/users - create a new user profile
+// router.post("/", async (req, res) => {
+//   try {
+//     const newTx = new User(req.body);
+//     const saved = await newTx.save();
+//     req.session.userId = newTx._id;  // set session
+//     res.status(201).json(saved);
+//   } catch (err) {
+//     console.error("Create user error:", err);
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
 
-// POST /api/users/signup
+// POST /api/users/signup - sign up a new user
 router.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -70,8 +70,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Check Session
-// GET /api/users/profile
+
+// GET /api/users/profile - check if user is logged in
 router.get("/profile", async (req, res) => {
   try {
     if (!req.session.userId) 
@@ -84,8 +84,8 @@ router.get("/profile", async (req, res) => {
   }
 });
 
-// Logout
-// POST /api/users/logout
+
+// POST /api/users/logout - log out a user
 router.post("/logout", (req, res) => {
   try {
     req.session.destroy(() => {

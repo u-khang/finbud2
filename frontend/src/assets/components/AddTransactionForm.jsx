@@ -18,7 +18,7 @@ function AddTransactionForm({ onTransactionAdded }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:4000/api/transactions/test", {
+      const res = await fetch("http://localhost:4000/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // session

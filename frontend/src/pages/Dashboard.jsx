@@ -25,7 +25,7 @@ function Dashboard({ user, setUser }) {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/transactions/test", {
+        const res = await fetch("http://localhost:4000/api/transactions/my", {
           credentials: "include"  // session cookies
         });
         const data = await res.json();

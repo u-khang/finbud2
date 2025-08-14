@@ -4,7 +4,12 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:api": "node test-api.js",
     "start": "node server.js",
     "migrate": "node migratePasswords.js"
   },
@@ -19,6 +24,7 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
-    "mongoose": "^8.16.4"
+    "mongoose": "^8.16.4",
+    "node-fetch": "^3.3.2"
   }
 }

@@ -1,4 +1,4 @@
-// backend/routes/transactions.js
+// backend/routes/users.js
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
@@ -6,10 +6,14 @@ const User = require("../models/User");
 
 // GET /api/users
 router.get("/", async (req, res) => {
-  const all = await User.find().sort({ date: -1 });
-  res.json(all);  
+  try {
+    const all = await User.find().sort({ date: -1 });
+    res.json(all);  
+  } catch (err) {
+    console.error("Get users error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
-
 
 // POST /api/users
 router.post("/", async (req, res) => {
@@ -19,9 +23,9 @@ router.post("/", async (req, res) => {
     req.session.userId = newTx._id;  // set session
     res.status(201).json(saved);
   } catch (err) {
+    console.error("Create user error:", err);
     res.status(400).json({ error: err.message });
   }
-  console.log("POST /api/users");
 });
 
 
@@ -33,12 +37,11 @@ router.post("/signup", async (req, res) => {
     const saved = await user.save();
     req.session.userId = user._id;  // set session
     res.status(201).json({ message: "Sign up successfully", user: saved });
-    console.log(saved); // res data
-    console.log(req.body); // req data
+    console.log("User registered successfully:", email);
   } catch (err) {
+    console.error("Signup error:", err);
     res.status(400).json({ error: err.message });
   }
-  console.log("POST /api/users/signup");
 });
 
 // POST /api/users/login
@@ -46,37 +49,52 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user || user.password !== password) {
-      console.log("Login attempt:", req.body);
+    if (!user) {
+      console.log("Login attempt: User not found");
       return res.status(401).json({ error: "Invalid credentials" });
     }
+    
+    // Use the comparePassword method for secure comparison
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      console.log("Login attempt: Invalid password");
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
     req.session.userId = user._id;  // set session
     res.json({ user });
-    console.log(req.body); // req data
+    console.log("Login successful for:", email);
   } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
   }
-  console.log("POST /api/users/login");
 });
 
 // Check Session
 // GET /api/users/profile
 router.get("/profile", async (req, res) => {
-  if (!req.session.userId) 
-    return res.status(401).json({ error: "Not logged in" });
-  const user = await User.findById(req.session.userId).select("-password");
-  res.json({ message: "User session active", user });
-  console.log("GET /api/users/profile");
+  try {
+    if (!req.session.userId) 
+      return res.status(401).json({ error: "Not logged in" });
+    const user = await User.findById(req.session.userId).select("-password");
+    res.json({ message: "User session active", user });
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
-
 
 // Logout
 // POST /api/users/logout
 router.post("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.json({ message: "Logged out" });
-  });
-  console.log("POST /api/users/logout");
+  try {
+    req.session.destroy(() => {
+      res.json({ message: "Logged out" });
+    });
+  } catch (err) {
+    console.error("Logout error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 

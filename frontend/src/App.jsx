@@ -17,9 +17,22 @@ function App() {
       <Route path="/login" element={<Login setUser={setUser} />} />
       <Route
         path="/dashboard"
-        element={user ? <Dashboard user={user} /> : <Navigate to="/login" />}
+        element={user ? <Dashboard user={user} setUser={setUser} /> : <Navigate to="/login" />}
       />
-      <Route path="/new" element={<NewTransaction />} />
+      <Route 
+        path="/new" 
+        element={user ? <NewTransaction user={user} /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/logout" 
+        element={
+          <Navigate 
+            to="/login" 
+            replace={true} 
+            state={{ logout: true }}
+          />
+        } 
+      />
     </Routes>
   );
 }

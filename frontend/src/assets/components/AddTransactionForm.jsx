@@ -170,14 +170,21 @@ function AddTransactionForm({ onTransactionAdded }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
         <label>
           Transaction Type:
-          <input 
-            type="text" 
+          <select 
             name="transactionType" 
             value={formData.transactionType} 
             onChange={handleChange} 
-            placeholder="e.g., Credit Card, Cash"
-            style={inputStyle}
-          />
+            style={selectStyle}
+          >
+            <option value="">Select payment method</option>
+            <option value="Debit">Debit</option>
+            <option value="Credit">Credit</option>
+            <option value="Cash">Cash</option>
+            <option value="Apple Pay">Apple Pay</option>
+            <option value="Google Pay">Google Pay</option>
+            <option value="Paypal">Paypal</option>
+            <option value="Other">Other</option>
+          </select>
         </label>
 
         <label>

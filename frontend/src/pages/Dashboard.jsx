@@ -1,11 +1,36 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import EditTransactionForm from "../assets/components/EditTransactionForm";
+import AddTransactionForm from "../assets/components/AddTransactionForm";
 
 function Dashboard({ user, setUser }) {
   const [transactions, setTransactions] = useState([]);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/transactions/my", {
+        credentials: "include"  // session cookies
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTransactions(data.transactions);
+      } else {
+        console.error("Failed to fetch transactions:", data.error);
+      }
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -13,80 +38,55 @@ function Dashboard({ user, setUser }) {
         method: "POST",
         credentials: "include"
       });
-    } catch (err) {
-      console.log("Logout error:", err);
-    } finally {
       setUser(null);
       navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
     }
   };
 
   const handleTransactionAdded = (newTransaction) => {
     setTransactions(prev => [newTransaction, ...prev]);
+    setShowAddForm(false); // Hide the form after successful addition
   };
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch("http://localhost:4000/api/transactions/my", {
-          credentials: "include"
-        });
+  const handleTransactionUpdated = (updatedTransaction) => {
+    setTransactions(prev => 
+      prev.map(t => t._id === updatedTransaction._id ? updatedTransaction : t)
+    );
+    setEditingTransaction(null); // Close edit form
+  };
+
+  const handleEditTransaction = (transaction) => {
+    setEditingTransaction(transaction);
+    setShowAddForm(false); // Hide add form when editing
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTransaction(null);
+  };
+
+  const handleDeleteTransaction = async (transactionId) => {
+    if (!window.confirm("Are you sure you want to delete this transaction?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:4000/api/transactions/${transactionId}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        setTransactions(prev => prev.filter(t => t._id !== transactionId));
+      } else {
         const data = await res.json();
-        if (res.ok) {
-          setTransactions(data.transactions);
-        } else {
-          setError(data.error || "Failed to load transactions");
-        }
-      } catch (err) {
-        setError("Server error");
-      } finally {
-        setIsLoading(false);
+        alert("Failed to delete transaction: " + (data.error || "Unknown error"));
       }
-    };
-
-    fetchTransactions();
-  }, []);
-
-  const headerStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "1.5rem",
-    borderBottom: "1px solid #eee",
-    marginBottom: "2rem",
-    backgroundColor: "#f8f9fa",
-    borderRadius: "8px"
-  };
-
-  const buttonStyle = {
-    padding: "0.75rem 1.5rem",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "1rem",
-    fontWeight: "500",
-    textDecoration: "none",
-    display: "inline-block"
-  };
-
-  const transactionListStyle = {
-    listStyle: "none",
-    padding: 0,
-    margin: 0
-  };
-
-  const transactionItemStyle = {
-    padding: "1rem",
-    border: "1px solid #eee",
-    borderRadius: "6px",
-    marginBottom: "1rem",
-    backgroundColor: "white",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
-  };
-
-  const getTransactionColor = (type) => {
-    return type === 'income' ? '#28a745' : '#dc3545';
+    } catch (err) {
+      console.error("Error deleting transaction:", err);
+      alert("Failed to delete transaction");
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -104,32 +104,69 @@ function Dashboard({ user, setUser }) {
     });
   };
 
+  const getTotalIncome = () => {
+    return transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  const getTotalExpenses = () => {
+    return transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        <div style={{ fontSize: "1.2rem", color: "#666" }}>Loading transactions...</div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem" }}>
-      <header style={headerStyle}>
+    <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
+      {/* Header */}
+      <header style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "2rem",
+        padding: "1rem",
+        backgroundColor: "#f8f9fa",
+        borderRadius: "8px"
+      }}>
         <div>
-          <h2 style={{ margin: 0, color: "#333" }}>Welcome, {user?.username}!</h2>
-          <p style={{ margin: "0.5rem 0 0 0", color: "#666" }}>
-            Manage your expenses and track your finances
-          </p>
+          <h1 style={{ margin: 0, color: "#333" }}>Welcome, {user.username}!</h1>
+          <p style={{ margin: "0.5rem 0 0 0", color: "#666" }}>Manage your expenses and income</p>
         </div>
         <div style={{ display: "flex", gap: "1rem" }}>
-          <button 
-            onClick={() => navigate("/new")}
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
             style={{
-              ...buttonStyle,
-              backgroundColor: "#007bff",
-              color: "white"
+              padding: "0.75rem 1.5rem",
+              backgroundColor: showAddForm ? "#6c757d" : "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              fontWeight: "500"
             }}
           >
-            Add Transaction
+            {showAddForm ? "Cancel Add" : "Add Transaction"}
           </button>
-          <button 
+          <button
             onClick={handleLogout}
             style={{
-              ...buttonStyle,
+              padding: "0.75rem 1.5rem",
               backgroundColor: "#dc3545",
-              color: "white"
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              fontWeight: "500"
             }}
           >
             Logout
@@ -137,139 +174,203 @@ function Dashboard({ user, setUser }) {
         </div>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "2rem" }}>
-        <div>
-          <h3 style={{ marginBottom: "1rem", color: "#333" }}>Recent Transactions</h3>
-          
-          {isLoading && (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#666" }}>
-              Loading transactions...
-            </div>
-          )}
+      {/* Quick Stats */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: "1rem",
+        marginBottom: "2rem"
+      }}>
+        <div style={{
+          padding: "1.5rem",
+          backgroundColor: "#e3f2fd",
+          borderRadius: "8px",
+          textAlign: "center"
+        }}>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#1976d2" }}>Total Transactions</h3>
+          <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold", color: "#1976d2" }}>
+            {transactions.length}
+          </p>
+        </div>
+        <div style={{
+          padding: "1.5rem",
+          backgroundColor: "#e8f5e8",
+          borderRadius: "8px",
+          textAlign: "center"
+        }}>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#2e7d32" }}>Total Income</h3>
+          <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold", color: "#2e7d32" }}>
+            {formatCurrency(getTotalIncome())}
+          </p>
+        </div>
+        <div style={{
+          padding: "1.5rem",
+          backgroundColor: "#ffebee",
+          borderRadius: "8px",
+          color: "#c62828",
+          textAlign: "center"
+        }}>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#c62828" }}>Total Expenses</h3>
+          <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold", color: "#c62828" }}>
+            {formatCurrency(getTotalExpenses())}
+          </p>
+        </div>
+      </div>
 
-          {error && (
-            <div style={{ 
-              padding: "1rem", 
-              backgroundColor: "#f8d7da", 
-              color: "#721c24", 
-              borderRadius: "4px",
-              marginBottom: "1rem"
-            }}>
-              {error}
-            </div>
-          )}
+      {/* Add Transaction Form */}
+      {showAddForm && (
+        <div style={{ marginBottom: "2rem" }}>
+          <div style={{
+            padding: "1rem",
+            backgroundColor: "#f8f9fa",
+            borderRadius: "8px",
+            border: "1px solid #dee2e6"
+          }}>
+            <h3 style={{ margin: "0 0 1rem 0", color: "#333", textAlign: "center" }}>Add New Transaction</h3>
+            <AddTransactionForm onTransactionAdded={handleTransactionAdded} />
+          </div>
+        </div>
+      )}
 
-          {!isLoading && !error && transactions.length === 0 && (
-            <div style={{ 
-              textAlign: "center", 
-              padding: "3rem", 
-              color: "#666",
-              backgroundColor: "#f8f9fa",
-              borderRadius: "8px"
-            }}>
-              <p>No transactions yet.</p>
-              <p>Add your first transaction to get started!</p>
-            </div>
-          )}
+      {/* Edit Form */}
+      {editingTransaction && (
+        <div style={{ marginBottom: "2rem" }}>
+          <EditTransactionForm
+            transaction={editingTransaction}
+            onUpdate={handleTransactionUpdated}
+            onCancel={handleCancelEdit}
+          />
+        </div>
+      )}
 
-          {!isLoading && !error && transactions.length > 0 && (
-            <ul style={transactionListStyle}>
-              {transactions.map((tx) => (
-                <li key={tx._id} style={transactionItemStyle}>
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center",
-                    marginBottom: "0.5rem"
-                  }}>
-                    <div>
-                      <span style={{ 
-                        fontWeight: "600", 
-                        color: getTransactionColor(tx.type),
-                        textTransform: "uppercase",
-                        fontSize: "0.9rem"
+      {/* Transactions List */}
+      <div>
+        <h2 style={{ marginBottom: "1rem", color: "#333" }}>Your Transactions</h2>
+        
+        {transactions.length === 0 ? (
+          <div style={{
+            padding: "3rem",
+            textAlign: "center",
+            backgroundColor: "#f8f9fa",
+            borderRadius: "8px",
+            color: "#666"
+          }}>
+            <p style={{ fontSize: "1.1rem", margin: "0 0 1rem 0" }}>No transactions yet</p>
+            <button
+              onClick={() => setShowAddForm(true)}
+              style={{
+                padding: "0.75rem 1.5rem",
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "1rem"
+              }}
+            >
+              Add Your First Transaction
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {transactions.map((transaction) => (
+              <div
+                key={transaction._id}
+                style={{
+                  padding: "1rem",
+                  backgroundColor: "white",
+                  borderRadius: "8px",
+                  border: "1px solid #dee2e6",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                }}
+              >
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "1rem"
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem",
+                      marginBottom: "0.5rem"
+                    }}>
+                      <span style={{
+                        padding: "0.25rem 0.75rem",
+                        borderRadius: "20px",
+                        fontSize: "0.8rem",
+                        fontWeight: "500",
+                        backgroundColor: transaction.type === 'income' ? '#d4edda' : '#f8d7da',
+                        color: transaction.type === 'income' ? '#155724' : '#721c24'
                       }}>
-                        {tx.type}
+                        {transaction.type === 'income' ? '💰 Income' : '💸 Expense'}
                       </span>
-                      {tx.category && (
-                        <span style={{ 
-                          marginLeft: "1rem", 
-                          color: "#666",
-                          fontSize: "0.9rem"
-                        }}>
-                          • {tx.category}
+                      <span style={{
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        color: transaction.type === 'income' ? '#28a745' : '#dc3545'
+                      }}>
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </span>
+                    </div>
+                    
+                    <div style={{ marginBottom: "0.5rem" }}>
+                      <strong>Category:</strong> {transaction.category || 'Uncategorized'}
+                      {transaction.transactionType && (
+                        <span style={{ marginLeft: "1rem", color: "#666" }}>
+                          <strong>Type:</strong> {transaction.transactionType}
                         </span>
                       )}
                     </div>
-                    <span style={{ 
-                      fontWeight: "600", 
-                      fontSize: "1.1rem",
-                      color: getTransactionColor(tx.type)
-                    }}>
-                      {formatCurrency(tx.amount)}
-                    </span>
+                    
+                    {transaction.note && (
+                      <div style={{ marginBottom: "0.5rem", color: "#666", fontStyle: "italic" }}>
+                        "{transaction.note}"
+                      </div>
+                    )}
+                    
+                    <div style={{ fontSize: "0.9rem", color: "#666" }}>
+                      {formatDate(transaction.date)}
+                    </div>
                   </div>
                   
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center",
-                    fontSize: "0.9rem",
-                    color: "#666"
-                  }}>
-                    <span>{formatDate(tx.date)}</span>
-                    {tx.note && (
-                      <span style={{ fontStyle: "italic" }}>
-                        "{tx.note}"
-                      </span>
-                    )}
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      onClick={() => handleEditTransaction(transaction)}
+                      style={{
+                        padding: "0.5rem 1rem",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "0.9rem"
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTransaction(transaction._id)}
+                      style={{
+                        padding: "0.5rem 1rem",
+                        backgroundColor: "#dc3545",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "0.9rem"
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div>
-          <h3 style={{ marginBottom: "1rem", color: "#333" }}>Quick Stats</h3>
-          <div style={{ 
-            backgroundColor: "#f8f9fa", 
-            padding: "1.5rem", 
-            borderRadius: "8px",
-            border: "1px solid #eee"
-          }}>
-            <div style={{ marginBottom: "1rem" }}>
-              <p style={{ margin: "0.5rem 0", color: "#666" }}>Total Transactions</p>
-              <h4 style={{ margin: 0, color: "#333" }}>{transactions.length}</h4>
-            </div>
-            
-            {transactions.length > 0 && (
-              <>
-                <div style={{ marginBottom: "1rem" }}>
-                  <p style={{ margin: "0.5rem 0", color: "#666" }}>Total Income</p>
-                  <h4 style={{ margin: 0, color: "#28a745" }}>
-                    {formatCurrency(
-                      transactions
-                        .filter(tx => tx.type === 'income')
-                        .reduce((sum, tx) => sum + tx.amount, 0)
-                    )}
-                  </h4>
                 </div>
-                
-                <div style={{ marginBottom: "1rem" }}>
-                  <p style={{ margin: "0.5rem 0", color: "#666" }}>Total Expenses</p>
-                  <h4 style={{ margin: 0, color: "#dc3545" }}>
-                    {formatCurrency(
-                      transactions
-                        .filter(tx => tx.type === 'expense')
-                        .reduce((sum, tx) => sum + tx.amount, 0)
-                    )}
-                  </h4>
-                </div>
-              </>
-            )}
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

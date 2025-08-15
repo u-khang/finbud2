@@ -7,6 +7,7 @@ function SignupForm({ onSignup }) {
     password: ""
   });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,6 +16,7 @@ function SignupForm({ onSignup }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
       const res = await fetch("http://localhost:4000/api/users/signup", {
@@ -26,24 +28,78 @@ function SignupForm({ onSignup }) {
 
       const data = await res.json();
       if (res.ok) {
-        onSignup(data.user.username);  // Notify parent component
+        onSignup(data.user);  // Pass complete user object
       } else {
         setError(data.error || "Signup failed");
       }
     } catch (err) {
       console.error("Signup request failed:", err);
       setError("Server error");
+    } finally {
+      setIsLoading(false);
     }    
   };
 
   return (
     <div style={{ maxWidth: "400px", margin: "3rem auto", textAlign: "center" }}>
       <h2>Create an Account</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="username" placeholder="Username" onChange={handleChange} required /><br />
-        <input name="email" type="email" placeholder="Email" onChange={handleChange} required /><br />
-        <input name="password" type="password" placeholder="Password" onChange={handleChange} required /><br />
-        <button type="submit" style={{ marginTop: "1rem" }}>Sign Up</button>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <input 
+          name="username" 
+          placeholder="Username" 
+          value={form.username}
+          onChange={handleChange} 
+          required 
+          style={{
+            padding: "0.75rem",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "1rem"
+          }}
+        />
+        <input 
+          name="email" 
+          type="email" 
+          placeholder="Email" 
+          value={form.email}
+          onChange={handleChange} 
+          required 
+          style={{
+            padding: "0.75rem",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "1rem"
+          }}
+        />
+        <input 
+          name="password" 
+          type="password" 
+          placeholder="Password" 
+          value={form.password}
+          onChange={handleChange} 
+          required 
+          style={{
+            padding: "0.75rem",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "1rem"
+          }}
+        />
+        <button 
+          type="submit" 
+          disabled={isLoading}
+          style={{
+            padding: "0.75rem",
+            backgroundColor: isLoading ? "#ccc" : "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            fontSize: "1rem",
+            cursor: isLoading ? "not-allowed" : "pointer"
+          }}
+        >
+          {isLoading ? "Creating Account..." : "Sign Up"}
+        </button>
       </form>
       {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
     </div>

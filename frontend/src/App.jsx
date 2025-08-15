@@ -5,10 +5,13 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NewTransaction from "./pages/NewTransaction";
 
-
-
 function App() {
   const [user, setUser] = useState(null);
+
+  const handleTransactionAdded = (newTransaction) => {
+    // This will be passed down to components that need to update the transaction list
+    // For now, we'll handle this in the Dashboard component
+  };
 
   return (
     <Routes>
@@ -21,7 +24,7 @@ function App() {
       />
       <Route 
         path="/new" 
-        element={user ? <NewTransaction user={user} /> : <Navigate to="/login" />} 
+        element={user ? <NewTransaction user={user} onTransactionAdded={handleTransactionAdded} /> : <Navigate to="/login" />} 
       />
       <Route 
         path="/logout" 

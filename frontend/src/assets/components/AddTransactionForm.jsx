@@ -9,6 +9,30 @@ function AddTransactionForm({ onTransactionAdded }) {
     transactionType: "",
     note: ""
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Categories sorted from most common to least common
+  const categories = [
+    "Groceries",
+    "Transportation", 
+    "Utilities",
+    "Dining",
+    "Shopping",
+    "Entertainment",
+    "Home",
+    "Health, fitness & personal care",
+    "Credit Card Payments",
+    "Paycheque, Pensions & Annuity",
+    "Savings & Investment",
+    "Kids and family",
+    "Travel",
+    "Education",
+    "Insurance",
+    "Taxes and government",
+    "Loan & Mortgage",
+    "Other"
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,6 +41,9 @@ function AddTransactionForm({ onTransactionAdded }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
     try {
       const res = await fetch("http://localhost:4000/api/transactions", {
         method: "POST",
@@ -28,51 +55,149 @@ function AddTransactionForm({ onTransactionAdded }) {
       const data = await res.json();
       if (res.ok) {
         onTransactionAdded?.(data.transaction);
-        setFormData({ ...formData, amount: "", category: "", transactionType: "", note: "" });
+        setFormData({ 
+          ...formData, 
+          amount: "", 
+          category: "", 
+          transactionType: "", 
+          note: "" 
+        });
       } else {
-        alert(data.error || "Failed to add transaction");
+        setError(data.error || "Failed to add transaction");
       }
     } catch (err) {
-      alert("Server error");
+      setError("Server error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const formStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    maxWidth: "500px",
+    margin: "0 auto"
+  };
+
+  const inputStyle = {
+    padding: "0.75rem",
+    border: "1px solid #ddd",
+    borderRadius: "4px",
+    fontSize: "1rem"
+  };
+
+  const selectStyle = {
+    ...inputStyle,
+    backgroundColor: "white"
+  };
+
+  const buttonStyle = {
+    padding: "0.75rem",
+    backgroundColor: isLoading ? "#ccc" : "#28a745",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    fontSize: "1rem",
+    cursor: isLoading ? "not-allowed" : "pointer",
+    fontWeight: "500"
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Type:
-        <select name="type" value={formData.type} onChange={handleChange} required>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-      </label>
+    <form onSubmit={handleSubmit} style={formStyle}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <label>
+          Type:
+          <select 
+            name="type" 
+            value={formData.type} 
+            onChange={handleChange} 
+            required 
+            style={selectStyle}
+          >
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </label>
 
-      <label>
-        Amount:
-        <input type="number" name="amount" value={formData.amount} onChange={handleChange} required />
-      </label>
+        <label>
+          Amount:
+          <input 
+            type="number" 
+            name="amount" 
+            value={formData.amount} 
+            onChange={handleChange} 
+            required 
+            min="0.01"
+            step="0.01"
+            placeholder="0.00"
+            style={inputStyle}
+          />
+        </label>
+      </div>
 
-      <label>
-        Category:
-        <input type="text" name="category" value={formData.category} onChange={handleChange} />
-      </label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <label>
+          Category:
+          <select 
+            name="category" 
+            value={formData.category} 
+            onChange={handleChange} 
+            required
+            style={selectStyle}
+          >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      <label>
-        Date:
-        <input type="date" name="date" value={formData.date} onChange={handleChange} />
-      </label>
+        <label>
+          Date:
+          <input 
+            type="date" 
+            name="date" 
+            value={formData.date} 
+            onChange={handleChange} 
+            style={inputStyle}
+          />
+        </label>
+      </div>
 
-      <label>
-        Transaction Type:
-        <input type="text" name="transactionType" value={formData.transactionType} onChange={handleChange} />
-      </label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <label>
+          Transaction Type:
+          <input 
+            type="text" 
+            name="transactionType" 
+            value={formData.transactionType} 
+            onChange={handleChange} 
+            placeholder="e.g., Credit Card, Cash"
+            style={inputStyle}
+          />
+        </label>
 
-      <label>
-        Note:
-        <input type="text" name="note" value={formData.note} onChange={handleChange} />
-      </label>
+        <label>
+          Note:
+          <input 
+            type="text" 
+            name="note" 
+            value={formData.note} 
+            onChange={handleChange} 
+            placeholder="Optional note"
+            style={inputStyle}
+          />
+        </label>
+      </div>
 
-      <button type="submit">Add Transaction</button>
+      <button type="submit" disabled={isLoading} style={buttonStyle}>
+        {isLoading ? "Adding Transaction..." : "Add Transaction"}
+      </button>
+
+      {error && <p style={{ color: "red", textAlign: "center", margin: 0 }}>{error}</p>}
     </form>
   );
 }

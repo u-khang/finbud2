@@ -8,6 +8,7 @@ function Dashboard({ user, setUser }) {
   const [isLoading, setIsLoading] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +31,31 @@ function Dashboard({ user, setUser }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Filter transactions by selected month
+  const getFilteredTransactions = () => {
+    if (!selectedMonth) return transactions;
+    
+    const [year, month] = selectedMonth.split('-').map(Number);
+    return transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate.getFullYear() === year && 
+             transactionDate.getMonth() === month - 1; // Month is 0-indexed
+    });
+  };
+
+  const filteredTransactions = getFilteredTransactions();
+
+  // Get available months from transactions
+  const getAvailableMonths = () => {
+    const months = new Set();
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.add(monthKey);
+    });
+    return Array.from(months).sort().reverse();
   };
 
   const handleLogout = async () => {
@@ -104,6 +130,24 @@ function Dashboard({ user, setUser }) {
     });
   };
 
+  const formatMonthLabel = (monthString) => {
+    const [year, month] = monthString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  };
+
+  const getMonthlyIncome = () => {
+    return filteredTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  const getMonthlyExpenses = () => {
+    return filteredTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
   const getTotalIncome = () => {
     return transactions
       .filter(t => t.type === 'income')
@@ -157,6 +201,21 @@ function Dashboard({ user, setUser }) {
             {showAddForm ? "Cancel Add" : "Add Transaction"}
           </button>
           <button
+            onClick={() => navigate("/analytics")}
+            style={{
+              padding: "0.75rem 1.5rem",
+              backgroundColor: "#17a2b8",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              fontWeight: "500"
+            }}
+          >
+            View Analytics
+          </button>
+          <button
             onClick={handleLogout}
             style={{
               padding: "0.75rem 1.5rem",
@@ -174,6 +233,53 @@ function Dashboard({ user, setUser }) {
         </div>
       </header>
 
+      {/* Month Filter */}
+      <div style={{
+        marginBottom: "2rem",
+        padding: "1rem",
+        backgroundColor: "#f8f9fa",
+        borderRadius: "8px",
+        border: "1px solid #dee2e6"
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
+          flexWrap: "wrap"
+        }}>
+          <label style={{
+            fontWeight: "500",
+            color: "#333",
+            minWidth: "120px"
+          }}>
+            Filter by Month:
+          </label>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ced4da",
+              fontSize: "1rem",
+              minWidth: "200px"
+            }}
+          >
+            <option value="">All Time</option>
+            {getAvailableMonths().map(month => (
+              <option key={month} value={month}>
+                {formatMonthLabel(month)}
+              </option>
+            ))}
+          </select>
+          {selectedMonth && (
+            <span style={{ color: "#666", fontSize: "0.9rem" }}>
+              Showing {filteredTransactions.length} of {transactions.length} transactions
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* Quick Stats */}
       <div style={{
         display: "grid",
@@ -187,9 +293,11 @@ function Dashboard({ user, setUser }) {
           borderRadius: "8px",
           textAlign: "center"
         }}>
-          <h3 style={{ margin: "0 0 0.5rem 0", color: "#1976d2" }}>Total Transactions</h3>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#1976d2" }}>
+            {selectedMonth ? "Monthly Transactions" : "Total Transactions"}
+          </h3>
           <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold", color: "#1976d2" }}>
-            {transactions.length}
+            {filteredTransactions.length}
           </p>
         </div>
         <div style={{
@@ -198,9 +306,11 @@ function Dashboard({ user, setUser }) {
           borderRadius: "8px",
           textAlign: "center"
         }}>
-          <h3 style={{ margin: "0 0 0.5rem 0", color: "#2e7d32" }}>Total Income</h3>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#2e7d32" }}>
+            {selectedMonth ? "Monthly Income" : "Total Income"}
+          </h3>
           <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold", color: "#2e7d32" }}>
-            {formatCurrency(getTotalIncome())}
+            {formatCurrency(selectedMonth ? getMonthlyIncome() : getTotalIncome())}
           </p>
         </div>
         <div style={{
@@ -210,9 +320,11 @@ function Dashboard({ user, setUser }) {
           color: "#c62828",
           textAlign: "center"
         }}>
-          <h3 style={{ margin: "0 0 0.5rem 0", color: "#c62828" }}>Total Expenses</h3>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#c62828" }}>
+            {selectedMonth ? "Monthly Expenses" : "Total Expenses"}
+          </h3>
           <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold", color: "#c62828" }}>
-            {formatCurrency(getTotalExpenses())}
+            {formatCurrency(selectedMonth ? getMonthlyExpenses() : getTotalExpenses())}
           </p>
         </div>
       </div>
@@ -245,9 +357,11 @@ function Dashboard({ user, setUser }) {
 
       {/* Transactions List */}
       <div>
-        <h2 style={{ marginBottom: "1rem", color: "#333" }}>Your Transactions</h2>
+        <h2 style={{ marginBottom: "1rem", color: "#333" }}>
+          {selectedMonth ? `Transactions for ${formatMonthLabel(selectedMonth)}` : "Your Transactions"}
+        </h2>
         
-        {transactions.length === 0 ? (
+        {filteredTransactions.length === 0 ? (
           <div style={{
             padding: "3rem",
             textAlign: "center",
@@ -255,7 +369,9 @@ function Dashboard({ user, setUser }) {
             borderRadius: "8px",
             color: "#666"
           }}>
-            <p style={{ fontSize: "1.1rem", margin: "0 0 1rem 0" }}>No transactions yet</p>
+            <p style={{ fontSize: "1.1rem", margin: "0 0 1rem 0" }}>
+              {selectedMonth ? `No transactions for ${formatMonthLabel(selectedMonth)}` : "No transactions yet"}
+            </p>
             <button
               onClick={() => setShowAddForm(true)}
               style={{
@@ -273,7 +389,7 @@ function Dashboard({ user, setUser }) {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {transactions.map((transaction) => (
+            {filteredTransactions.map((transaction) => (
               <div
                 key={transaction._id}
                 style={{

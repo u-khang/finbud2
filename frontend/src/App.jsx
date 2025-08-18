@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -15,6 +16,10 @@ function App() {
       <Route
         path="/dashboard"
         element={user ? <Dashboard user={user} setUser={setUser} /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/analytics"
+        element={user ? <Analytics user={user} setUser={setUser} /> : <Navigate to="/login" />}
       />
       <Route
         path="/logout"

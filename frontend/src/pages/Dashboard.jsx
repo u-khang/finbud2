@@ -160,6 +160,109 @@ function Dashboard({ user, setUser }) {
       .reduce((sum, t) => sum + t.amount, 0);
   };
 
+  // Convert transactions to CSV format
+  const convertToCSV = (transactions) => {
+    if (transactions.length === 0) return '';
+    
+    // Define CSV headers
+    const headers = [
+      'ID',
+      'Type',
+      'Amount',
+      'Category',
+      'Date',
+      'Note',
+      'Transaction Type',
+      'Created At'
+    ];
+    
+    // Convert transactions to CSV rows
+    const csvRows = transactions.map(transaction => [
+      transaction._id,
+      transaction.type,
+      transaction.amount,
+      transaction.category || 'Uncategorized',
+      new Date(transaction.date).toISOString().split('T')[0], // Format as YYYY-MM-DD
+      transaction.note || '',
+      transaction.transactionType || '',
+      new Date(transaction.date).toISOString()
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [headers, ...csvRows]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    return csvContent;
+  };
+
+  // Download CSV file
+  const downloadCSV = () => {
+    const csvContent = convertToCSV(transactions);
+    
+    if (!csvContent) {
+      alert('No transactions to export');
+      return;
+    }
+    
+    // Create blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    // Create filename with current date
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const filename = `transactions_${dateStr}.csv`;
+    
+    // Set up download
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // Download filtered CSV (based on current month filter)
+  const downloadFilteredCSV = () => {
+    const csvContent = convertToCSV(filteredTransactions);
+    
+    if (!csvContent) {
+      alert('No transactions to export for the selected period');
+      return;
+    }
+    
+    // Create blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    // Create filename with filter info
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    let filename = `transactions_${dateStr}`;
+    
+    if (selectedMonth) {
+      const monthLabel = formatMonthLabel(selectedMonth).replace(' ', '_');
+      filename = `transactions_${monthLabel}_${dateStr}.csv`;
+    } else {
+      filename = `transactions_all_time_${dateStr}.csv`;
+    }
+    
+    // Set up download
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   if (isLoading) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
@@ -184,7 +287,7 @@ function Dashboard({ user, setUser }) {
           <h1 style={{ margin: 0, color: "#333" }}>Welcome, {user.username}!</h1>
           <p style={{ margin: "0.5rem 0 0 0", color: "#666" }}>Manage your expenses and income</p>
         </div>
-        <div style={{ display: "flex", gap: "1rem" }}>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             style={{
@@ -214,6 +317,38 @@ function Dashboard({ user, setUser }) {
             }}
           >
             View Analytics
+          </button>
+          <button
+            onClick={downloadCSV}
+            style={{
+              padding: "0.75rem 1.5rem",
+              backgroundColor: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              fontWeight: "500"
+            }}
+            title="Download all transactions as CSV"
+          >
+            📊 Export All
+          </button>
+          <button
+            onClick={downloadFilteredCSV}
+            style={{
+              padding: "0.75rem 1.5rem",
+              backgroundColor: "#ffc107",
+              color: "#212529",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              fontWeight: "500"
+            }}
+            title="Download filtered transactions as CSV"
+          >
+            📋 Export Filtered
           </button>
           <button
             onClick={handleLogout}

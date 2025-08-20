@@ -1,5 +1,9 @@
 .env
 SECURITY.md
+SETUP_CHECKLIST.md
+TESTING_GUIDE.md
+ENVIRONMENT_SETUP.md
+env.example
 
 # Dependencies
 node_modules/

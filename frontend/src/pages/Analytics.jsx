@@ -11,6 +11,7 @@ import {
   BarElement
 } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
+import config from "../config";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title, CategoryScale, LinearScale, BarElement);
 
@@ -27,7 +28,7 @@ function Analytics({ user, setUser }) {
 
   const fetchTransactions = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/transactions/my", {
+      const res = await fetch(`${config.API_BASE_URL}/api/transactions/my`, {
         credentials: "include"
       });
       const data = await res.json();
@@ -70,7 +71,7 @@ function Analytics({ user, setUser }) {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:4000/api/users/logout", {
+      await fetch(`${config.API_BASE_URL}/api/users/logout`, {
         method: "POST",
         credentials: "include"
       });

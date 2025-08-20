@@ -27,10 +27,10 @@ mongoose.connect(process.env.MONGO_URI)
     return User.insertMany(sampleUsers);
   })
   .then(() => {
-    console.log("🎉 Sample users inserted");
+    console.log("Sample users inserted");
     mongoose.disconnect();
   })
   .catch((err) => {
-    console.error("❌ Error seeding users:", err);
+    console.error("Error seeding users:", err);
     mongoose.disconnect();
   });

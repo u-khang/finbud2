@@ -18,10 +18,10 @@ mongoose.connect(process.env.MONGO_URI)
     return Transaction.insertMany(sampleTransactions);
   })
   .then(() => {
-    console.log("✅ Sample transactions inserted");
+    console.log("Sample transactions inserted");
     mongoose.disconnect();
   })
   .catch((err) => {
-    console.error("❌ Error inserting sample data:", err);
+    console.error("Error inserting sample data:", err);
     mongoose.disconnect();
   });

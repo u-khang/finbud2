@@ -11,7 +11,6 @@ function Signup({ setUser }) {
 
   return (
     <div style={{ maxWidth: "400px", margin: "3rem auto", textAlign: "center" }}>
-      <h2>Create an Account</h2>
       <SignupForm onSignup={handleSignup} />
       <div style={{ marginTop: "2rem", padding: "1rem", borderTop: "1px solid #eee" }}>
         <p style={{ margin: "0.5rem 0", color: "#666" }}>

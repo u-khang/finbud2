@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EditTransactionForm from "../assets/components/EditTransactionForm";
 import AddTransactionForm from "../assets/components/AddTransactionForm";
+import config from "../config";
 
 function Dashboard({ user, setUser }) {
   const [transactions, setTransactions] = useState([]);
@@ -17,7 +18,7 @@ function Dashboard({ user, setUser }) {
 
   const fetchTransactions = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/transactions/my", {
+      const res = await fetch(`${config.API_BASE_URL}/api/transactions/my`, {
         credentials: "include"  // session cookies
       });
       const data = await res.json();
@@ -60,7 +61,7 @@ function Dashboard({ user, setUser }) {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:4000/api/users/logout", {
+      await fetch(`${config.API_BASE_URL}/api/users/logout`, {
         method: "POST",
         credentials: "include"
       });
@@ -98,7 +99,7 @@ function Dashboard({ user, setUser }) {
     }
 
     try {
-      const res = await fetch(`http://localhost:4000/api/transactions/${transactionId}`, {
+      const res = await fetch(`${config.API_BASE_URL}/api/transactions/${transactionId}`, {
         method: "DELETE",
         credentials: "include"
       });

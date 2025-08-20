@@ -1,4 +1,5 @@
 import { useState } from "react";
+import config from "../../config";
 
 function SignupForm({ onSignup }) {
   const [form, setForm] = useState({
@@ -19,7 +20,7 @@ function SignupForm({ onSignup }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:4000/api/users/signup", {
+      const res = await fetch(`${config.API_BASE_URL}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // keep session cookies

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import config from "../../config";
 
 function LoginForm({ onLogin }) {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -15,7 +16,7 @@ function LoginForm({ onLogin }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:4000/api/users/login", {
+      const res = await fetch(`${config.API_BASE_URL}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

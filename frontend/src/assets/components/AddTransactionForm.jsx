@@ -1,4 +1,5 @@
 import { useState } from "react";
+import config from "../../config";
 
 function AddTransactionForm({ onTransactionAdded }) {
   const [formData, setFormData] = useState({
@@ -45,7 +46,7 @@ function AddTransactionForm({ onTransactionAdded }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:4000/api/transactions", {
+      const res = await fetch(`${config.API_BASE_URL}/api/transactions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // session
@@ -169,7 +170,7 @@ function AddTransactionForm({ onTransactionAdded }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
         <label>
-          Transaction Type:
+          Transaction Type (Optional):
           <select 
             name="transactionType" 
             value={formData.transactionType} 
@@ -188,13 +189,13 @@ function AddTransactionForm({ onTransactionAdded }) {
         </label>
 
         <label>
-          Note:
+          Note (Optional):
           <input 
             type="text" 
             name="note" 
             value={formData.note} 
             onChange={handleChange} 
-            placeholder="Optional note"
+            placeholder="Add a note"
             style={inputStyle}
           />
         </label>

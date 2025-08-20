@@ -1,9 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const config = require("./config");
 
 
 
@@ -14,24 +14,24 @@ const app = express();
 //session
 app.use(
   session({
-    secret: "yourSecretKey", // change to a secure env variable later
+    secret: config.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
+      mongoUrl: config.MONGO_URI,
       collectionName: "sessions"
     }),
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      maxAge: config.COOKIE_MAX_AGE,
       httpOnly: true,
-      secure: false // set to true if using HTTPS
+      secure: config.COOKIE_SECURE
     }
   })
 );
 
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
-  credentials: true                // allow cookies/sessions
+  origin: config.FRONTEND_URL,
+  credentials: true
 }));
 app.use(express.json());
 
@@ -48,12 +48,14 @@ app.use("/api/users", userRoutes);
 
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {}).then(() => console.log("Connected to MongoDB"));
+mongoose.connect(config.MONGO_URI, {}).then(() => console.log("Connected to MongoDB"));
 
 // Example Route
 app.get("/", (req, res) => res.send("Finance Tracker API running"));
 
 // Start server
-app.listen(process.env.PORT || 4000, () => {
-  console.log(`Server listening on port ${process.env.PORT || 4000}`);
+app.listen(config.PORT, () => {
+  console.log(`Server listening on port ${config.PORT}`);
+  console.log(`Frontend URL: ${config.FRONTEND_URL}`);
+  console.log(`Environment: ${config.NODE_ENV}`);
 });

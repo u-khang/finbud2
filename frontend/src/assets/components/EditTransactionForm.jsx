@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import config from "../../config";
 
 function EditTransactionForm({ transaction, onUpdate, onCancel }) {
   const [formData, setFormData] = useState({
@@ -59,7 +60,7 @@ function EditTransactionForm({ transaction, onUpdate, onCancel }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`http://localhost:4000/api/transactions/${transaction._id}`, {
+      const res = await fetch(`${config.API_BASE_URL}/api/transactions/${transaction._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // session
@@ -194,7 +195,7 @@ function EditTransactionForm({ transaction, onUpdate, onCancel }) {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <label>
-            Transaction Type:
+            Transaction Type (Optional):
             <select 
               name="transactionType" 
               value={formData.transactionType} 
@@ -213,7 +214,7 @@ function EditTransactionForm({ transaction, onUpdate, onCancel }) {
           </label>
 
           <label>
-            Note:
+            Note (Optional):
             <input 
               type="text" 
               name="note" 

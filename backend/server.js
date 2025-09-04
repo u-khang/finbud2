@@ -22,7 +22,9 @@ app.use(
       maxAge: config.COOKIE_MAX_AGE,
       httpOnly: true,
       secure: config.COOKIE_SECURE,
-      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax'
+      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: config.NODE_ENV === 'production' ? '.onrender.com' : undefined,
+      path: '/'
     }
   })
 );

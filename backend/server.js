@@ -12,7 +12,7 @@ app.use(
   session({
     secret: config.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: MongoStore.create({
       mongoUrl: config.MONGO_URI,
       collectionName: "sessions"

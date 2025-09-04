@@ -21,7 +21,12 @@ router.get("/", async (req, res) => {
 // GET /api/transactions/my - Get logged-in user's transactions
 router.get("/my", async (req, res) => {
   try {
+    console.log("Transactions request - Session ID:", req.sessionID);
+    console.log("Transactions request - Session:", req.session);
+    console.log("Transactions request - UserId:", req.session.userId);
+    
     if (!req.session.userId) {
+      console.log("No userId in session, returning 401");
       return res.status(401).json({ error: "Not logged in" });
     }
 

@@ -13,11 +13,10 @@ app.use(
     secret: config.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    // Temporarily use memory store for debugging
-    // store: MongoStore.create({
-    //   mongoUrl: config.MONGO_URI,
-    //   collectionName: "sessions"
-    // }),
+    store: MongoStore.create({
+      mongoUrl: config.MONGO_URI,
+      collectionName: "sessions"
+    }),
     cookie: {
       maxAge: config.COOKIE_MAX_AGE,
       httpOnly: true,

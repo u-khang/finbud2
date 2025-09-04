@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import config from "../config";
+import { authenticatedFetch, removeToken } from "../utils/auth";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title, CategoryScale, LinearScale, BarElement);
 
@@ -28,14 +29,17 @@ function Analytics({ user, setUser }) {
 
   const fetchTransactions = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/api/transactions/my`, {
-        credentials: "include"
-      });
+      const res = await authenticatedFetch(`${config.API_BASE_URL}/api/transactions/my`);
       const data = await res.json();
       if (res.ok) {
         setTransactions(data.transactions);
       } else {
         console.error("Failed to fetch transactions:", data.error);
+        if (res.status === 401) {
+          removeToken();
+          setUser(null);
+          navigate("/login");
+        }
       }
     } catch (err) {
       console.error("Error fetching transactions:", err);
@@ -71,10 +75,8 @@ function Analytics({ user, setUser }) {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${config.API_BASE_URL}/api/users/logout`, {
-        method: "POST",
-        credentials: "include"
-      });
+      // Remove token from localStorage
+      removeToken();
       setUser(null);
       navigate("/login");
     } catch (err) {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import config from "../../config";
+import { authenticatedFetch } from "../../utils/auth";
 
 function AddTransactionForm({ onTransactionAdded }) {
   const [formData, setFormData] = useState({
@@ -46,10 +47,8 @@ function AddTransactionForm({ onTransactionAdded }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${config.API_BASE_URL}/api/transactions`, {
+      const res = await authenticatedFetch(`${config.API_BASE_URL}/api/transactions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // session
         body: JSON.stringify(formData)
       });
 

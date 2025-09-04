@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import EditTransactionForm from "../assets/components/EditTransactionForm";
 import AddTransactionForm from "../assets/components/AddTransactionForm";
 import config from "../config";
+import { authenticatedFetch, removeToken } from "../utils/auth";
 
 function Dashboard({ user, setUser }) {
   const [transactions, setTransactions] = useState([]);
@@ -18,14 +19,18 @@ function Dashboard({ user, setUser }) {
 
   const fetchTransactions = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/api/transactions/my`, {
-        credentials: "include"  // session cookies
-      });
+      const res = await authenticatedFetch(`${config.API_BASE_URL}/api/transactions/my`);
       const data = await res.json();
       if (res.ok) {
         setTransactions(data.transactions);
       } else {
         console.error("Failed to fetch transactions:", data.error);
+        if (res.status === 401) {
+          // Token expired or invalid, redirect to login
+          removeToken();
+          setUser(null);
+          navigate("/login");
+        }
       }
     } catch (err) {
       console.error("Error fetching transactions:", err);
@@ -61,10 +66,8 @@ function Dashboard({ user, setUser }) {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${config.API_BASE_URL}/api/users/logout`, {
-        method: "POST",
-        credentials: "include"
-      });
+      // Remove token from localStorage
+      removeToken();
       setUser(null);
       navigate("/login");
     } catch (err) {
@@ -99,9 +102,8 @@ function Dashboard({ user, setUser }) {
     }
 
     try {
-      const res = await fetch(`${config.API_BASE_URL}/api/transactions/${transactionId}`, {
-        method: "DELETE",
-        credentials: "include"
+      const res = await authenticatedFetch(`${config.API_BASE_URL}/api/transactions/${transactionId}`, {
+        method: "DELETE"
       });
 
       if (res.ok) {
@@ -109,6 +111,11 @@ function Dashboard({ user, setUser }) {
       } else {
         const data = await res.json();
         alert("Failed to delete transaction: " + (data.error || "Unknown error"));
+        if (res.status === 401) {
+          removeToken();
+          setUser(null);
+          navigate("/login");
+        }
       }
     } catch (err) {
       console.error("Error deleting transaction:", err);

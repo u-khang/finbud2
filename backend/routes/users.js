@@ -52,8 +52,19 @@ router.post("/signup", async (req, res) => {
   try {
     const user = new User({ username, email, password });
     const saved = await user.save();
-    req.session.userId = user._id;  // set session
-    res.status(201).json({ message: "Sign up successfully", user: saved });
+    
+    // Create JWT token for new user
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.SESSION_SECRET || 'yourSecretKey',
+      { expiresIn: '24h' }
+    );
+    
+    res.status(201).json({ 
+      message: "Sign up successfully", 
+      user: saved,
+      token 
+    });
     console.log("User registered successfully:", email);
   } catch (err) {
     console.error("Signup error:", err);

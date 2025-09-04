@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import config from "../../config";
+import { authenticatedFetch } from "../../utils/auth";
 
 function EditTransactionForm({ transaction, onUpdate, onCancel }) {
   const [formData, setFormData] = useState({
@@ -60,10 +61,8 @@ function EditTransactionForm({ transaction, onUpdate, onCancel }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${config.API_BASE_URL}/api/transactions/${transaction._id}`, {
+      const res = await authenticatedFetch(`${config.API_BASE_URL}/api/transactions/${transaction._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // session
         body: JSON.stringify(formData)
       });
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import config from "../../config";
+import { setToken } from "../../utils/auth";
 
 function SignupForm({ onSignup }) {
   const [form, setForm] = useState({
@@ -23,12 +24,15 @@ function SignupForm({ onSignup }) {
       const res = await fetch(`${config.API_BASE_URL}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // keep session cookies
         body: JSON.stringify(form)
       });
 
       const data = await res.json();
       if (res.ok) {
+        // Store the JWT token if provided
+        if (data.token) {
+          setToken(data.token);
+        }
         onSignup(data.user);  // Pass complete user object
       } else {
         setError(data.error || "Signup failed");

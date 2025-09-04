@@ -30,6 +30,14 @@ function Dashboard({ user, setUser }) {
       if (res.ok) {
         setTransactions(data.transactions || []);
         console.log("Transactions set:", data.transactions?.length || 0);
+        
+        // Debug: Show transaction dates
+        if (data.transactions && data.transactions.length > 0) {
+          console.log("Transaction dates:");
+          data.transactions.forEach((tx, index) => {
+            console.log(`${index + 1}. Date: ${tx.date}, Type: ${tx.type}, Amount: ${tx.amount}`);
+          });
+        }
       } else {
         console.error("Failed to fetch transactions:", data.error);
         if (res.status === 401) {
@@ -48,14 +56,30 @@ function Dashboard({ user, setUser }) {
 
   // Filter transactions by selected month
   const getFilteredTransactions = () => {
-    if (!selectedMonth) return transactions;
+    console.log("Filtering transactions...");
+    console.log("Total transactions:", transactions.length);
+    console.log("Selected month:", selectedMonth);
+    
+    if (!selectedMonth) {
+      console.log("No month selected, returning all transactions");
+      return transactions;
+    }
     
     const [year, month] = selectedMonth.split('-').map(Number);
-    return transactions.filter(transaction => {
+    console.log("Filtering for year:", year, "month:", month);
+    
+    const filtered = transactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);
-      return transactionDate.getFullYear() === year && 
-             transactionDate.getMonth() === month - 1; // Month is 0-indexed
+      const transactionYear = transactionDate.getFullYear();
+      const transactionMonth = transactionDate.getMonth() + 1; // Convert to 1-indexed
+      
+      console.log("Transaction date:", transaction.date, "-> Year:", transactionYear, "Month:", transactionMonth);
+      
+      return transactionYear === year && transactionMonth === month;
     });
+    
+    console.log("Filtered transactions:", filtered.length);
+    return filtered;
   };
 
   const filteredTransactions = getFilteredTransactions();

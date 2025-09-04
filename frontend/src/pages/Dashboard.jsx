@@ -19,10 +19,17 @@ function Dashboard({ user, setUser }) {
 
   const fetchTransactions = async () => {
     try {
+      console.log("Fetching transactions...");
       const res = await authenticatedFetch(`${config.API_BASE_URL}/api/transactions/my`);
+      console.log("Response status:", res.status);
+      console.log("Response headers:", res.headers);
+      
       const data = await res.json();
+      console.log("Response data:", data);
+      
       if (res.ok) {
-        setTransactions(data.transactions);
+        setTransactions(data.transactions || []);
+        console.log("Transactions set:", data.transactions?.length || 0);
       } else {
         console.error("Failed to fetch transactions:", data.error);
         if (res.status === 401) {

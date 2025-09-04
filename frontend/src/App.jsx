@@ -52,10 +52,15 @@ function App() {
         color: '#666'
       }}>
         Loading...
+        <div style={{ fontSize: '0.9rem', color: '#999', marginTop: '1rem' }}>
+          Debug: isLoading={isLoading.toString()}, user={user ? 'logged in' : 'not logged in'}
+        </div>
       </div>
     );
   }
 
+  console.log("App render - user:", user, "isLoading:", isLoading);
+  
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/signup" />} />

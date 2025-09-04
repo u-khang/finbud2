@@ -18,12 +18,7 @@ function Dashboard({ user, setUser }) {
   }, []);
 
   // Debug: Log when transactions or selectedMonth changes
-  useEffect(() => {
-    console.log("Transactions or selectedMonth changed:");
-    console.log("transactions.length:", transactions.length);
-    console.log("selectedMonth:", selectedMonth);
-    console.log("filteredTransactions.length:", filteredTransactions.length);
-  }, [transactions, selectedMonth, filteredTransactions]);
+  console.log("Dashboard render - transactions.length:", transactions.length, "selectedMonth:", selectedMonth);
 
   const fetchTransactions = async () => {
     try {

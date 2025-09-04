@@ -17,6 +17,14 @@ function Dashboard({ user, setUser }) {
     fetchTransactions();
   }, []);
 
+  // Debug: Log when transactions or selectedMonth changes
+  useEffect(() => {
+    console.log("Transactions or selectedMonth changed:");
+    console.log("transactions.length:", transactions.length);
+    console.log("selectedMonth:", selectedMonth);
+    console.log("filteredTransactions.length:", filteredTransactions.length);
+  }, [transactions, selectedMonth, filteredTransactions]);
+
   const fetchTransactions = async () => {
     try {
       console.log("Fetching transactions...");
@@ -84,6 +92,10 @@ function Dashboard({ user, setUser }) {
   };
 
   const filteredTransactions = getFilteredTransactions();
+  
+  // Debug: Log the final filtered transactions
+  console.log("Final filteredTransactions:", filteredTransactions);
+  console.log("filteredTransactions.length:", filteredTransactions.length);
 
   // Get available months from transactions
   const getAvailableMonths = () => {
@@ -308,6 +320,9 @@ function Dashboard({ user, setUser }) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
         <div style={{ fontSize: "1.2rem", color: "#666" }}>Loading transactions...</div>
+        <div style={{ fontSize: "0.9rem", color: "#999", marginTop: "1rem" }}>
+          Debug: isLoading={isLoading.toString()}, transactions.length={transactions.length}
+        </div>
       </div>
     );
   }
@@ -547,6 +562,9 @@ function Dashboard({ user, setUser }) {
           }}>
             <p style={{ fontSize: "1.1rem", margin: "0 0 1rem 0" }}>
               {selectedMonth ? `No transactions for ${formatMonthLabel(selectedMonth)}` : "No transactions yet"}
+            </p>
+            <p style={{ fontSize: "0.9rem", margin: "0 0 1rem 0", color: "#999" }}>
+              Debug: Total transactions: {transactions.length}, Filtered: {filteredTransactions.length}, Selected month: "{selectedMonth}"
             </p>
             <button
               onClick={() => setShowAddForm(true)}

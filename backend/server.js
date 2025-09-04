@@ -20,7 +20,8 @@ app.use(
     cookie: {
       maxAge: config.COOKIE_MAX_AGE,
       httpOnly: true,
-      secure: config.COOKIE_SECURE
+      secure: config.COOKIE_SECURE,
+      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax'
     }
   })
 );

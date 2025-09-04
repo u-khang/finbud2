@@ -23,7 +23,6 @@ app.use(
       httpOnly: true,
       secure: config.COOKIE_SECURE,
       sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain: config.NODE_ENV === 'production' ? '.onrender.com' : undefined,
       path: '/'
     }
   })
@@ -39,6 +38,20 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 app.use(express.json());
+
+// Middleware to ensure session cookie is set
+app.use((req, res, next) => {
+  if (req.sessionID && !req.headers.cookie) {
+    res.cookie('connect.sid', req.sessionID, {
+      maxAge: config.COOKIE_MAX_AGE,
+      httpOnly: true,
+      secure: config.COOKIE_SECURE,
+      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/'
+    });
+  }
+  next();
+});
 
 // Routes
 const transactionRoutes = require("./routes/transactions");

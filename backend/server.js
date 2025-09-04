@@ -55,7 +55,9 @@ app.get("/health", (req, res) => {
     status: "OK", 
     timestamp: new Date().toISOString(),
     environment: config.NODE_ENV,
-    cors_origins: config.ALLOWED_ORIGINS
+    cors_origins: config.ALLOWED_ORIGINS,
+    session_secret_configured: !!config.SESSION_SECRET,
+    cookie_secure: config.COOKIE_SECURE
   });
 });
 
@@ -80,4 +82,6 @@ app.listen(config.PORT, () => {
   console.log(`🌐 Frontend URL: ${config.FRONTEND_URL}`);
   console.log(`🔧 Environment: ${config.NODE_ENV}`);
   console.log(`✅ Allowed CORS origins: ${config.ALLOWED_ORIGINS.join(', ')}`);
+  console.log(`🔐 Session secret configured: ${config.SESSION_SECRET ? 'YES' : 'NO'}`);
+  console.log(`🍪 Cookie secure: ${config.COOKIE_SECURE}`);
 });

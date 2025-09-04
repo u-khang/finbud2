@@ -28,24 +28,7 @@ app.use(
 
 // CORS configuration
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in allowed origins
-    if (config.ALLOWED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // In development, allow localhost with any port
-    if (config.NODE_ENV === 'development' && origin.includes('localhost')) {
-      return callback(null, true);
-    }
-    
-    // Log rejected origins for debugging
-    console.log('CORS blocked origin:', origin);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: config.ALLOWED_ORIGINS,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],

@@ -10,7 +10,7 @@ function Dashboard({ user, setUser }) {
   const [isLoading, setIsLoading] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
+  const [selectedMonth, setSelectedMonth] = useState(""); // Start with "All Time" view
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,9 +69,10 @@ function Dashboard({ user, setUser }) {
     console.log("Filtering for year:", year, "month:", month);
     
     const filtered = transactions.filter(transaction => {
+      // Use UTC methods to avoid timezone issues
       const transactionDate = new Date(transaction.date);
-      const transactionYear = transactionDate.getFullYear();
-      const transactionMonth = transactionDate.getMonth() + 1; // Convert to 1-indexed
+      const transactionYear = transactionDate.getUTCFullYear();
+      const transactionMonth = transactionDate.getUTCMonth() + 1; // Convert to 1-indexed
       
       console.log("Transaction date:", transaction.date, "-> Year:", transactionYear, "Month:", transactionMonth);
       
@@ -89,7 +90,7 @@ function Dashboard({ user, setUser }) {
     const months = new Set();
     transactions.forEach(transaction => {
       const date = new Date(transaction.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthKey = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
       months.add(monthKey);
     });
     return Array.from(months).sort().reverse();
@@ -165,7 +166,8 @@ function Dashboard({ user, setUser }) {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'UTC'
     });
   };
 

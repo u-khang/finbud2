@@ -2,7 +2,24 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
+// JWT middleware to verify tokens
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.SESSION_SECRET || 'yourSecretKey');
+    req.userId = decoded.userId;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
 
 // GET /api/users - get all user profiles (admin)
 router.get("/", async (req, res) => {
@@ -61,20 +78,16 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
     
-    req.session.userId = user._id;  // set session
-    console.log("Session set - userId:", user._id);
-    console.log("Session ID:", req.sessionID);
-    console.log("Session object:", req.session);
+    // Create JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.SESSION_SECRET || 'yourSecretKey',
+      { expiresIn: '24h' }
+    );
     
-    // Force session to be saved
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.status(500).json({ error: "Session save failed" });
-      }
-      res.json({ user });
-      console.log("Login successful for:", email);
-    });
+    console.log("JWT token created for user:", user._id);
+    res.json({ user, token });
+    console.log("Login successful for:", email);
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
@@ -83,11 +96,9 @@ router.post("/login", async (req, res) => {
 
 
 // GET /api/users/profile - check if user is logged in
-router.get("/profile", async (req, res) => {
+router.get("/profile", verifyToken, async (req, res) => {
   try {
-    if (!req.session.userId) 
-      return res.status(401).json({ error: "Not logged in" });
-    const user = await User.findById(req.session.userId).select("-password");
+    const user = await User.findById(req.userId).select("-password");
     res.json({ message: "User session active", user });
   } catch (err) {
     console.error("Profile error:", err);

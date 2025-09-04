@@ -2,6 +2,24 @@
 const express = require("express");
 const router = express.Router();
 const Transaction = require("../models/Transaction");
+const jwt = require("jsonwebtoken");
+
+// JWT middleware to verify tokens
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.SESSION_SECRET || 'yourSecretKey');
+    req.userId = decoded.userId;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
 
 // GET /api/transactions - Get all transactions (admin only)
 router.get("/", async (req, res) => {
@@ -19,18 +37,11 @@ router.get("/", async (req, res) => {
 });
 
 // GET /api/transactions/my - Get logged-in user's transactions
-router.get("/my", async (req, res) => {
+router.get("/my", verifyToken, async (req, res) => {
   try {
-    console.log("Transactions request - Session ID:", req.sessionID);
-    console.log("Transactions request - Session:", req.session);
-    console.log("Transactions request - UserId:", req.session.userId);
-    
-    if (!req.session.userId) {
-      console.log("No userId in session, returning 401");
-      return res.status(401).json({ error: "Not logged in" });
-    }
+    console.log("Transactions request - UserId:", req.userId);
 
-    const transactions = await Transaction.find({ user: req.session.userId })
+    const transactions = await Transaction.find({ user: req.userId })
       .sort({ date: -1 });
     
     res.json({ transactions });
@@ -41,16 +52,12 @@ router.get("/my", async (req, res) => {
 });
 
 // POST /api/transactions - Create a new transaction for logged-in user
-router.post("/", async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: "Not logged in" });
-    }
-
     const { type, amount, category, date, note, transactionType } = req.body;
 
     const transaction = new Transaction({
-      user: req.session.userId,
+      user: req.userId,
       type,
       amount,
       category,
@@ -68,15 +75,11 @@ router.post("/", async (req, res) => {
 });
 
 // GET /api/transactions/:id - Get a specific transaction by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", verifyToken, async (req, res) => {
   try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: "Not logged in" });
-    }
-
     const transaction = await Transaction.findOne({
       _id: req.params.id,
-      user: req.session.userId
+      user: req.userId
     });
 
     if (!transaction) {
@@ -91,18 +94,14 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /api/transactions/:id - Update a transaction
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyToken, async (req, res) => {
   try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: "Not logged in" });
-    }
-
     const { type, amount, category, date, note, transactionType } = req.body;
 
     const transaction = await Transaction.findOneAndUpdate(
       {
         _id: req.params.id,
-        user: req.session.userId
+        user: req.userId
       },
       {
         type,
@@ -127,15 +126,11 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /api/transactions/:id - Delete a transaction
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, async (req, res) => {
   try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: "Not logged in" });
-    }
-
     const transaction = await Transaction.findOneAndDelete({
       _id: req.params.id,
-      user: req.session.userId
+      user: req.userId
     });
 
     if (!transaction) {

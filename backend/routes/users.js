@@ -65,6 +65,15 @@ router.post("/login", async (req, res) => {
     console.log("Session set - userId:", user._id);
     console.log("Session ID:", req.sessionID);
     console.log("Session object:", req.session);
+    
+    // Manually set the session cookie
+    res.cookie('connect.sid', req.sessionID, {
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    });
+    
     res.json({ user });
     console.log("Login successful for:", email);
   } catch (err) {

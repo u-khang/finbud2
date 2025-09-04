@@ -4,7 +4,7 @@ A full-stack web application for managing personal finances with income and expe
 
 ## [Live Demo](https://finbud2.onrender.com/)
 
-## 📸 Screenshots
+## Screenshots
 
 ### Dashboard Overview
 ![Dashboard](images/dashboard.png)

@@ -4,6 +4,15 @@ A full-stack web application for managing personal finances with income and expe
 
 ## [Live Demo](https://finbud2.onrender.com/)
 
+## 📸 Screenshots
+
+### Dashboard Overview
+![Dashboard](images/dashboard.png)
+*Clean, intuitive dashboard with transaction management and real-time statistics*
+
+### Analytics & Charts
+![Analytics](images/analytics.png)
+*Interactive charts showing spending patterns and category breakdowns*
 
 ### **Dashboard**
 - **Transaction Management**: Add, edit, and delete income/expense transactions

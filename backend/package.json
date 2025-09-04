@@ -9,9 +9,9 @@
     "test:coverage": "jest --coverage",
     "test:unit": "jest --testPathPattern=unit",
     "test:integration": "jest --testPathPattern=integration",
-    "test:api": "node test-api.js",
     "start": "node server.js",
-    "migrate": "node migratePasswords.js"
+    "seed": "node seed.js",
+    "drop": "node dropCollections.js"
   },
   "keywords": [],
   "author": "",

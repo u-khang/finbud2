@@ -13,6 +13,9 @@ const config = {
   
   // CORS Configuration
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',') 
+    : ['http://localhost:5173', 'http://localhost:3000'],
   
   // API Configuration
   API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:4000',

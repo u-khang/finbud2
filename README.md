@@ -2,6 +2,12 @@
 
 A full-stack web application for managing personal finances with income and expense tracking, analytics, and data export capabilities.
 
+## 🌐 Live Demo
+
+**[Try the Live Application](https://finbud2.onrender.com/)**
+
+Experience the full-featured expense tracker with real-time data visualization and secure JWT authentication.
+
 ### **Dashboard**
 - **Transaction Management**: Add, edit, and delete income/expense transactions
 - **Real-time Statistics**: View total income, expenses, and net balance

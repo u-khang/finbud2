@@ -10,6 +10,7 @@ const app = express();
 // Session configuration
 app.use(
   session({
+    name: 'connect.sid',
     secret: config.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,

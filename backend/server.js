@@ -1,57 +1,19 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const config = require("./config");
 
 const app = express();
-
-// Session configuration
-app.use(
-  session({
-    name: 'connect.sid',
-    secret: config.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    store: MongoStore.create({
-      mongoUrl: config.MONGO_URI,
-      collectionName: "sessions"
-    }),
-    cookie: {
-      maxAge: config.COOKIE_MAX_AGE,
-      httpOnly: true,
-      secure: config.COOKIE_SECURE,
-      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/'
-    }
-  })
-);
 
 // CORS configuration
 app.use(cors({
   origin: config.ALLOWED_ORIGINS,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['Set-Cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 }));
 app.use(express.json());
-
-// Middleware to ensure session cookie is set
-app.use((req, res, next) => {
-  if (req.sessionID && !req.headers.cookie) {
-    res.cookie('connect.sid', req.sessionID, {
-      maxAge: config.COOKIE_MAX_AGE,
-      httpOnly: true,
-      secure: config.COOKIE_SECURE,
-      sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/'
-    });
-  }
-  next();
-});
 
 // Routes
 const transactionRoutes = require("./routes/transactions");
@@ -73,8 +35,7 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
     environment: config.NODE_ENV,
     cors_origins: config.ALLOWED_ORIGINS,
-    session_secret_configured: !!config.SESSION_SECRET,
-    cookie_secure: config.COOKIE_SECURE
+    authentication: "JWT"
   });
 });
 
@@ -99,6 +60,5 @@ app.listen(config.PORT, () => {
   console.log(`🌐 Frontend URL: ${config.FRONTEND_URL}`);
   console.log(`🔧 Environment: ${config.NODE_ENV}`);
   console.log(`✅ Allowed CORS origins: ${config.ALLOWED_ORIGINS.join(', ')}`);
-  console.log(`🔐 Session secret configured: ${config.SESSION_SECRET ? 'YES' : 'NO'}`);
-  console.log(`🍪 Cookie secure: ${config.COOKIE_SECURE}`);
+  console.log(`🔐 Authentication: JWT`);
 });
